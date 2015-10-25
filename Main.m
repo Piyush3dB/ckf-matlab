@@ -1,7 +1,5 @@
 %%%=======================================================================
 %%% This matlab code implements the CKF 
-%%% Author I. Arasaratnam (haran@ieee.org)
-%%% Date. May 19, 2012
 %%%=======================================================================
 
 clear;
@@ -9,6 +7,8 @@ clc;
 close all;
 
 %global Q R;
+
+nState = 2;
 
 nExpt = 10;             % No. of Experiments/Trials          
 
@@ -20,12 +20,12 @@ sigma_processNoise2 = 1e-1;
 Q = diag([sigma_processNoise1^2  sigma_processNoise2^2 ]); 
 
 %%% Measurement Noise Covariance R
-R = 0.005*eye(2);
+R = 0.005*eye(nState);
 
-MSE = zeros(2,N);
-estMSE = zeros(2,N);
+MSE    = zeros(nState, N);
+estMSE = zeros(nState, N);
 
-xestArray = zeros(2,N); 
+xestArray = zeros(nState, N); 
 
 % Generate Testcase
 [xArray,zArray] = GenerateScenario(Q);
@@ -63,10 +63,10 @@ for expt = 1:nExpt
     
 end;    % expts
 
-MSE = MSE/(2*nExpt);
+MSE    = MSE/(2*nExpt);
 estMSE = estMSE/(2*nExpt);
 
-RMSE = MSE.^(0.5);
+RMSE    = MSE.^(0.5);
 estRMSE = estMSE.^(0.5);
 
 %%%========================================================================
