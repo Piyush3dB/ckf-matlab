@@ -1,11 +1,17 @@
 function [x,y] = GenerateScenario(Q)
 
+Q1 = Q(1:2,1:2);
+r1 = 0.8; 
+r2 = 0.2;
 
-
-Q1 =Q(1:2,1:2);
-r1 = 0.8; r2 = 0.2;
 noise = Q1 * randn(2,1000);
-theta(1) = 0; theta2(1) = 0; t=1; count = 1;
+
+theta(1)  = 0; 
+theta2(1) = 0; 
+
+t=1; 
+count = 1;
+
 for j = 0.3:.1:1.2
     for k = pi/2:.05:1.5*pi
         theta1(t) = j + noise(1,t);

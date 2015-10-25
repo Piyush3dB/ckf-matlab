@@ -1,61 +1,65 @@
 %%%=======================================================================
-%%% This matlab code implements the CKF 
+%%% This matlab code implements the CKF
 %%%=======================================================================
 
 clear;
-clc; 
+clc;
 close all;
 
-%global Q R;
+nx = 2; % state vector dimension
+nState = nx;
 
-nState = 2;
+nExpt = 10;             % No. of Experiments/Trials
 
-nExpt = 10;             % No. of Experiments/Trials          
-
-N = 630;                % No. of Time steps            
+N = 630;                % No. of Time steps
 
 %%% Process Noise Covariance Q
-sigma_processNoise1 = 1e-2;              
-sigma_processNoise2 = 1e-1;              
-Q = diag([sigma_processNoise1^2  sigma_processNoise2^2 ]); 
+sigma1 = 1e-2;
+sigma2 = 1e-1;
+Q = diag([sigma1^2  sigma2^2 ]);
 
 %%% Measurement Noise Covariance R
 R = 0.005*eye(nState);
 
+% Initialise metric store
 MSE    = zeros(nState, N);
 estMSE = zeros(nState, N);
 
-xestArray = zeros(nState, N); 
+xestArray = zeros(nState, N);
+
+% Initial covariance prior
+Skk = diag([0.9  pi/6]);
+Pkk = Skk*Skk';
 
 % Generate Testcase
 [xArray,zArray] = GenerateScenario(Q);
 
+%% Iterate
 for expt = 1:nExpt
     
-    %%%====================================================================
-    %%% Initialization
-    %%%====================================================================
-     
+    % Initial mean prior
     xkk = [0.3+0.9*rand; pi/2+pi*rand];
-    
-    Skk = diag([0.9  pi/6]);
-    Pkk = Skk*Skk';
-    
+
     fprintf('MC Run in Process = %d\n',expt);
     
+    % Iterate for evert measurement
     for k = 1:N
         
         % Propagate estimate and covariance
-        [xkk1,Pkk1] = Predict(xkk,Pkk,Q);
+        [xkk1,Pkk1] = Predict(xkk, Pkk, Q);
         
         % Update estimate and covariance
-        [xkk,Pkk] = Update(xkk1,Pkk1,zArray(:,k),R);
+        z = zArray(:,k); % measurement
+        [xkk,Pkk] = Update(xkk1, Pkk1, z, R);
         
+        % Save state estimate
         xestArray(:,k) = xkk;
         
-        x = xArray(:,k);
+        % True value
+        xTrue = xArray(:, k);
         
-        MSE(:,k)= MSE(:,k) + sum((x - xkk).^2);
+        % Calculate metrics
+        MSE(:,k)= MSE(:,k) + sum((xTrue - xkk).^2);
         
         estMSE(:,k) = estMSE(:,k)+ trace(Pkk);
         
