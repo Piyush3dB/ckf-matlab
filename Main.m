@@ -29,16 +29,21 @@ xestArray = zeros(nState, N);
 
 % Initial covariance prior
 Skk = diag([0.9  pi/6]);
-Pkk = Skk*Skk';
+
 
 % Generate Testcase
 [xArray,zArray] = GenerateScenario(Q);
 
+
+
 %% Iterate
 for expt = 1:nExpt
     
-    % Initial mean prior
+    % Initial mean and covariance prior
     xkk = [0.3+0.9*rand; pi/2+pi*rand];
+    Pkk = Skk*Skk';
+    
+    ckfObj = CKF(Q, R, nx);
 
     fprintf('MC Run in Process = %d\n',expt);
     
@@ -46,12 +51,16 @@ for expt = 1:nExpt
     for k = 1:N
         
         % Propagate estimate and covariance
-        [xkk1,Pkk1] = Predict(xkk, Pkk, Q);
+        ckfObj = ckfObj.Predict(xkk, Pkk);
         
         % Update estimate and covariance
         z = zArray(:,k); % measurement
-        [xkk,Pkk] = Update(xkk1, Pkk1, z, R);
+        ckfObj = ckfObj.Update(z);
         
+        % Get outputs
+        xkk = ckfObj.xkk;
+        Pkk = ckfObj.Pkk;
+
         % Save state estimate
         xestArray(:,k) = xkk;
         
